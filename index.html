@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Proyecto Publicidad LED - Grupo CR3</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cr3Green: '#10B981',
+            cr3Orange: '#F97316',
+            cr3Dark: '#0F172A',
+            cr3Card: '#1E293B',
+            cr3Border: '#334155',
+            cr3Text: '#CBD5E1'
+          }
+        }
+      }
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+    html { scroll-behavior: smooth; }
+    body { background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0F172A 100%); }
+    
+    .card { background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(20px); border: 1px solid rgba(51, 65, 85, 0.5); transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+    .card:hover { background: rgba(30, 41, 59, 0.8); border-color: rgba(16, 185, 129, 0.3); transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3); }
+    
+    .scroll-fade { opacity: 0; transform: translateY(40px); transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+    .scroll-fade.visible { opacity: 1; transform: translateY(0); }
+    
+    .scroll-fade-left { opacity: 0; transform: translateX(-40px); transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+    .scroll-fade-left.visible { opacity: 1; transform: translateX(0); }
+    
+    .scroll-fade-right { opacity: 0; transform: translateX(40px); transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+    .scroll-fade-right.visible { opacity: 1; transform: translateX(0); }
+    
+    .delay-100 { transition-delay: 0.1s; } .delay-200 { transition-delay: 0.2s; } .delay-300 { transition-delay: 0.3s; } .delay-400 { transition-delay: 0.4s; }
+    
+    @keyframes progressBar { from { width: 0; } }
+    .progress-animated { animation: progressBar 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+    
+    @keyframes pulse-green { 0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 50% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); } }
+    .pulse-green { animation: pulse-green 2s infinite; }
+    
+    .chart-container { position: relative; height: 320px; width: 100%; }
+    .badge { display: inline-flex; align-items: center; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+  </style>
+</head>
+<body class="text-cr3Text min-h-screen selection:bg-cr3Green selection:text-white">
+  
+  <!-- Header -->
+  <header class="border-b border-cr3Border bg-cr3Dark/50 backdrop-blur-xl sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-6 py-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <div>
+            <h1 class="text-xl font-bold text-white tracking-tight">Proyecto OOH Digital: Análisis de Ubicaciones</h1>
+            <p class="text-xs text-cr3Text font-medium">Presentación Dir. Comercial y Mkt • Grupo CR3 Chihuahua</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-6">
+          <div class="flex items-center gap-3 border-l border-cr3Border pl-6">
+            <div class="text-right hidden sm:block">
+              <div class="text-sm font-semibold text-white">Estado del Análisis</div>
+              <div class="text-xs text-cr3Text">Completado: Sitios & Naming</div>
+            </div>
+            <div class="w-2 h-2 rounded-full bg-cr3Green pulse-green"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-6 py-12">
+    
+    <!-- Executive Summary -->
+    <section class="mb-16 scroll-fade">
+      <div class="text-center max-w-4xl mx-auto mb-12">
+        <h2 class="text-4xl md:text-5xl font-black text-white mb-4 tracking-tight">Estrategia Comercial por Sitio</h2>
+        <p class="text-lg text-cr3Text leading-relaxed">
+          Perfilamiento de 3 puntos estratégicos para instalación de <span class="text-cr3Green font-semibold">unipolares con altura total de 20 metros (poste + pantalla)</span>. 
+          El análisis integra flujo vehicular, nivel socioeconómico y guías de monetización adaptadas a la geografía comercial de Chihuahua.
+        </p>
+      </div>
+    </section>
+
+    <!-- Fichas de Ubicación (NUEVO) -->
+    <section class="mb-16">
+      <div class="mb-8 scroll-fade">
+        <h3 class="text-2xl font-bold text-white mb-2">Análisis de Nodos Publicitarios</h3>
+        <p class="text-cr3Text">Radiografía comercial para el equipo de ventas</p>
+      </div>
+      
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Ubicación 1: Periférico -->
+        <div class="card rounded-2xl p-6 scroll-fade delay-100 flex flex-col h-full relative overflow-hidden">
+          <div class="absolute top-0 right-0 w-24 h-24 bg-cr3Green/10 rounded-bl-full -z-10"></div>
+          <div class="flex justify-between items-start mb-4">
+            <div>
+              <span class="badge bg-cr3Green/20 text-cr3Green border border-cr3Green/30 mb-2">Nodo 1 • Premium</span>
+              <h3 class="text-xl font-bold text-white">Periférico de la Juventud</h3>
+              <p class="text-xs text-cr3Text">Coords: 28.647, -106.124 (Aprox)</p>
+            </div>
+          </div>
+          
+          <div class="space-y-4 flex-grow">
+            <div>
+              <h4 class="text-sm font-semibold text-white mb-1 flex items-center gap-2">
+                <svg class="w-4 h-4 text-cr3Green" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                Visibilidad
+              </h4>
+              <p class="text-xs text-cr3Text"><strong class="text-gray-300">Directa:</strong> Norte a Sur (LED principal)<br><strong class="text-gray-300">Indirecta:</strong> Sur a Norte (LED secundario)</p>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-2">
+                <div class="bg-white/5 p-2 rounded-lg border border-white/10">
+                    <p class="text-[10px] uppercase text-gray-500 font-bold mb-1">Perfil NSE</p>
+                    <p class="text-sm font-semibold text-white">A/B, C+ (Alto)</p>
+                </div>
+                <div class="bg-white/5 p-2 rounded-lg border border-white/10">
+                    <p class="text-[10px] uppercase text-gray-500 font-bold mb-1">Flujo (Día)</p>
+                    <p class="text-sm font-semibold text-white">+215,000 veh</p>
+                </div>
+            </div>
+
+            <div>
+              <h4 class="text-sm font-semibold text-white mb-1">Entorno & Negocios</h4>
+              <p class="text-xs text-cr3Text">Corredor comercial más importante de la ciudad. Agencias automotrices premium, Distrito 1, Paseo Central, corporativos, hospitales privados y fraccionamientos de alta plusvalía.</p>
+            </div>
+          </div>
+          
+          <div class="mt-4 pt-4 border-t border-cr3Border">
+            <h4 class="text-sm font-bold text-cr3Green mb-2">Guía de Comercialización</h4>
+            <p class="text-xs text-gray-300 italic">"La joya de la corona". Vender en paquete premium. Target ideal: Marcas automotrices de lujo, desarrollos inmobiliarios residenciales verticales, banca privada y joyería.</p>
+          </div>
+        </div>
+
+        <!-- Ubicación 2: Universidad -->
+        <div class="card rounded-2xl p-6 scroll-fade delay-200 flex flex-col h-full relative overflow-hidden">
+          <div class="absolute top-0 right-0 w-24 h-24 bg-blue-500/10 rounded-bl-full -z-10"></div>
+          <div class="flex justify-between items-start mb-4">
+            <div>
+              <span class="badge bg-blue-500/20 text-blue-400 border border-blue-500/30 mb-2">Nodo 2 • Masivo/Urbano</span>
+              <h3 class="text-xl font-bold text-white">Avenida Universidad</h3>
+              <p class="text-xs text-cr3Text">Div. del Norte hacia T. Borunda</p>
+            </div>
+          </div>
+          
+          <div class="space-y-4 flex-grow">
+            <div>
+              <h4 class="text-sm font-semibold text-white mb-1 flex items-center gap-2">
+                <svg class="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                Visibilidad
+              </h4>
+              <p class="text-xs text-cr3Text"><strong class="text-gray-300">Directa:</strong> Semáforo prolongado (Centro)<br><strong class="text-gray-300">Indirecta:</strong> Sentido opuesto (Norte)</p>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-2">
+                <div class="bg-white/5 p-2 rounded-lg border border-white/10">
+                    <p class="text-[10px] uppercase text-gray-500 font-bold mb-1">Perfil NSE</p>
+                    <p class="text-sm font-semibold text-white">C, C+ (Medio)</p>
+                </div>
+                <div class="bg-white/5 p-2 rounded-lg border border-white/10">
+                    <p class="text-[10px] uppercase text-gray-500 font-bold mb-1">Flujo (Día)</p>
+                    <p class="text-sm font-semibold text-white">+85,000 veh</p>
+                </div>
+            </div>
+
+            <div>
+              <h4 class="text-sm font-semibold text-white mb-1">Entorno & Negocios</h4>
+              <p class="text-xs text-cr3Text">Tráfico lento y cautivo. Zona burocrática, comercial y estudiantil. Cercano a Rectoría UACH, IMSS, Hospital General, restaurantes de consumo medio, comercio detallista.</p>
+            </div>
+          </div>
+          
+          <div class="mt-4 pt-4 border-t border-cr3Border">
+            <h4 class="text-sm font-bold text-blue-400 mb-2">Guía de Comercialización</h4>
+            <p class="text-xs text-gray-300 italic">Alta retención visual por semáforos. Target ideal: Universidades, telefonía/internet, comida rápida, conciertos/eventos locales, y campañas políticas/gubernamentales.</p>
+          </div>
+        </div>
+
+        <!-- Ubicación 3: Juan Pablo II -->
+        <div class="card rounded-2xl p-6 scroll-fade delay-300 flex flex-col h-full relative overflow-hidden">
+          <div class="absolute top-0 right-0 w-24 h-24 bg-cr3Orange/10 rounded-bl-full -z-10"></div>
+          <div class="flex justify-between items-start mb-4">
+            <div>
+              <span class="badge bg-cr3Orange/20 text-cr3Orange border border-cr3Orange/30 mb-2">Nodo 3 • Industrial/Sur</span>
+              <h3 class="text-xl font-bold text-white">Juan Pablo II y Pacheco</h3>
+              <p class="text-xs text-cr3Text">CRIT hacia Agencia Toro</p>
+            </div>
+          </div>
+          
+          <div class="space-y-4 flex-grow">
+            <div>
+              <h4 class="text-sm font-semibold text-white mb-1 flex items-center gap-2">
+                <svg class="w-4 h-4 text-cr3Orange" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                Visibilidad Híbrida
+              </h4>
+              <p class="text-xs text-cr3Text"><strong class="text-gray-300">Directa:</strong> LED digital hacia Toro.<br><strong class="text-cr3Orange">Indirecta:</strong> LONA IMPRESA FIJA.</p>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-2">
+                <div class="bg-white/5 p-2 rounded-lg border border-white/10">
+                    <p class="text-[10px] uppercase text-gray-500 font-bold mb-1">Perfil NSE</p>
+                    <p class="text-sm font-semibold text-white">C-, D+ (Med/Bajo)</p>
+                </div>
+                <div class="bg-white/5 p-2 rounded-lg border border-white/10">
+                    <p class="text-[10px] uppercase text-gray-500 font-bold mb-1">Flujo (Día)</p>
+                    <p class="text-sm font-semibold text-white">+75,000 veh</p>
+                </div>
+            </div>
+
+            <div>
+              <h4 class="text-sm font-semibold text-white mb-1">Entorno & Negocios</h4>
+              <p class="text-xs text-cr3Text">Entrada/salida sur, zona fuertemente industrial y logística. CRIT, Central de Abastos, maquiladoras, CEDIS, agencias de maquinaria pesada/utilitarios (ej. Chevrolet Toro).</p>
+            </div>
+          </div>
+          
+          <div class="mt-4 pt-4 border-t border-cr3Border">
+            <h4 class="text-sm font-bold text-cr3Orange mb-2">Guía de Comercialización</h4>
+            <p class="text-xs text-gray-300 italic">Venta combinada: Spots LED B2B y Lona para Branding Anual. Target ideal: Reclutamiento industrial (maquilas), venta de flotillas/camiones, ferreterías, y marcas de consumo masivo básicas.</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Tráfico y Potencial -->
+    <section class="mb-16">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 card rounded-2xl p-8 scroll-fade-left">
+          <div class="mb-6 flex flex-col md:flex-row justify-between md:items-end gap-4">
+            <div>
+              <h3 class="text-2xl font-bold text-white mb-2">Estimación de Tráfico por Ubicación</h3>
+              <p class="text-cr3Text">
+                Impacto diario calculado para <span class="text-white font-medium">Cara Directa (Principal)</span> vs <span class="text-white font-medium">Cara Indirecta</span>.
+              </p>
+            </div>
+          </div>
+          <div class="chart-container">
+            <canvas id="trafficChart"></canvas>
+          </div>
+          <p class="text-xs text-gray-400 mt-4">*Nota: En la ubicación J. Pablo II / Pacheco, la cara indirecta se comercializa como lona estática, lo que representa un ingreso fijo (renta mensual) a diferencia de los spots dinámicos.</p>
+        </div>
+        
+        <div class="scroll-fade-right">
+          <div class="card rounded-2xl p-8 h-full">
+            <h4 class="text-lg font-bold text-white mb-6">Demografía de Audiencia (Combinada)</h4>
+            <div class="chart-container relative flex justify-center h-48 mb-6">
+                <canvas id="donutChart"></canvas>
+            </div>
+            <div class="mt-4 p-4 rounded-xl bg-cr3Green/5 border border-cr3Green/20">
+              <p class="text-xs text-cr3Text leading-5">
+                <span class="text-cr3Green font-semibold block mb-1">Estrategia Automotriz CR3:</span> 
+                Utilizar Periférico Juv. para marcas premium/SUVs; Av. Universidad para compactos/primer auto; Juan Pablo II para utilitarios, pick-ups de trabajo y Seminuevos.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Ventaja Competitiva vs Competencia -->
+    <section class="mb-16">
+      <div class="mb-8 scroll-fade">
+        <h3 class="text-2xl font-bold text-white mb-2">Ventaja Competitiva vs Mercado OOH</h3>
+        <p class="text-cr3Text">Diferenciadores estructurales y comerciales frente a la competencia en Chihuahua.</p>
+      </div>
+      
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <!-- Pilar 1 -->
+        <div class="card rounded-2xl p-6 scroll-fade delay-100 border-t-4 border-t-cr3Green">
+          <div class="w-10 h-10 rounded-full bg-cr3Green/20 flex items-center justify-center mb-4">
+            <svg class="w-5 h-5 text-cr3Green" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
+          </div>
+          <h4 class="text-lg font-bold text-white mb-2">Dominancia de Altura (20m Total)</h4>
+          <p class="text-sm text-cr3Text">La competencia promedia 10-15 metros. Al operar con una <strong>altura total de 20m (poste + pantalla)</strong>, eliminamos el ruido visual urbano (árboles, cableado, puentes peatonales) y garantizamos una línea de visión limpia a más de 500 metros.</p>
+        </div>
+        <!-- Pilar 2 -->
+        <div class="card rounded-2xl p-6 scroll-fade delay-200 border-t-4 border-t-blue-500">
+          <div class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center mb-4">
+            <svg class="w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+          </div>
+          <h4 class="text-lg font-bold text-white mb-2">Matriz de Audiencias</h4>
+          <p class="text-sm text-cr3Text">No vendemos "pantallas", vendemos NSE (Nivel Socioeconómico). Tenemos un ecosistema que cubre a toda la ciudad: <strong>Premium</strong> (Juventud), <strong>Clase Media Urbana</strong> (Universidad) e <strong>Industrial/Logística</strong> (J. Pablo II).</p>
+        </div>
+        <!-- Pilar 3 -->
+        <div class="card rounded-2xl p-6 scroll-fade delay-300 border-t-4 border-t-cr3Orange">
+          <div class="w-10 h-10 rounded-full bg-cr3Orange/20 flex items-center justify-center mb-4">
+            <svg class="w-5 h-5 text-cr3Orange" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+          </div>
+          <h4 class="text-lg font-bold text-white mb-2">Respaldo Corporativo CR3</h4>
+          <p class="text-sm text-cr3Text">Operado bajo la sombrilla financiera de un grupo automotriz consolidado. Esto genera <strong>confianza B2B</strong> (mantenimiento impecable, cero pantallas apagadas) y permite <em>cross-selling</em> con socios actuales (bancos, aseguradoras).</p>
+        </div>
+      </div>
+
+      <div class="card rounded-2xl p-8 scroll-fade delay-400">
+        <h4 class="text-xl font-bold text-white mb-6">Comparativa Directa de Mercado</h4>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-cr3Border">
+                <th class="py-3 px-4 text-xs font-bold text-gray-500 uppercase">Atributo</th>
+                <th class="py-3 px-4 text-xs font-bold text-cr3Green uppercase">Nuestra Propuesta (Proyecto CR3)</th>
+                <th class="py-3 px-4 text-xs font-bold text-cr3Orange uppercase">Competencia Promedio</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-cr3Border/30">
+              <tr class="hover:bg-white/5 transition-colors">
+                <td class="py-4 px-4 text-sm font-semibold text-white">Estructura y Visibilidad</td>
+                <td class="py-4 px-4 text-sm text-gray-300"><span class="text-cr3Green font-bold">Unipolares 20m (Total).</span> Libre de saturación, visibilidad extendida a larga distancia.</td>
+                <td class="py-4 px-4 text-sm text-gray-400">10-15m, carteleras a nivel puente o muros ciegos. Alta obstrucción visual.</td>
+              </tr>
+              <tr class="hover:bg-white/5 transition-colors">
+                <td class="py-4 px-4 text-sm font-semibold text-white">Modelo Comercial</td>
+                <td class="py-4 px-4 text-sm text-gray-300"><span class="text-cr3Green font-bold">Ecosistema Segmentado + Híbrido.</span> Oferta digital y lona estática según el nodo y el presupuesto B2B.</td>
+                <td class="py-4 px-4 text-sm text-gray-400">Venta genérica masiva. O 100% estático o 100% digital sin flexibilidad en el mismo nodo.</td>
+              </tr>
+              <tr class="hover:bg-white/5 transition-colors">
+                <td class="py-4 px-4 text-sm font-semibold text-white">Tiempo de Lectura</td>
+                <td class="py-4 px-4 text-sm text-gray-300"><span class="text-cr3Green font-bold">10-15 Segundos.</span> Optimizados por ubicación estratégica en cruces y avenidas primarias.</td>
+                <td class="py-4 px-4 text-sm text-gray-400">3-6 Segundos. Menor retención de marca por velocidad de flujo y saturación del entorno.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- DOOH Benchmark (Elevate Media Data) -->
+    <section class="mb-16">
+      <div class="mb-8 scroll-fade">
+        <h3 class="text-2xl font-bold text-white mb-2">Impacto Comprobado DOOH (Benchmark de Industria)</h3>
+        <p class="text-cr3Text">Estadísticas clave del formato digital en México para reforzar el argumento de ventas B2B.</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Dato 1 -->
+        <div class="card rounded-2xl p-6 scroll-fade delay-100 text-center border-t-4 border-t-cr3Green">
+          <div class="text-4xl font-black text-white mb-2">+50%</div>
+          <h4 class="text-sm font-bold text-cr3Green uppercase tracking-wider mb-2">Retención de Marca</h4>
+          <p class="text-xs text-cr3Text">Los anuncios en pantallas LED digitales logran hasta un 50% mayor recordación en comparación con los medios impresos tradicionales (lonas fijos), garantizando que "quien te ve, no te olvida".</p>
+        </div>
+        <!-- Dato 2 -->
+        <div class="card rounded-2xl p-6 scroll-fade delay-200 text-center border-t-4 border-t-blue-500">
+          <div class="text-4xl font-black text-white mb-2">68%</div>
+          <h4 class="text-sm font-bold text-blue-400 uppercase tracking-wider mb-2">Influencia de Compra</h4>
+          <p class="text-xs text-cr3Text">El 68% de los consumidores toma decisiones de compra influenciadas directamente por anuncios en pantallas digitales visualizados durante sus trayectos y rutinas diarias.</p>
+        </div>
+        <!-- Dato 3 -->
+        <div class="card rounded-2xl p-6 scroll-fade delay-300 text-center border-t-4 border-t-cr3Orange">
+          <div class="text-4xl font-black text-white mb-2">0%</div>
+          <h4 class="text-sm font-bold text-cr3Orange uppercase tracking-wider mb-2">Costos Ocultos</h4>
+          <p class="text-xs text-cr3Text">El anunciante elimina el 100% de los gastos por impresión de lonas, reposición por desgaste climático o cuotas de instalación. Todo su presupuesto se va directo a generar impactos visuales.</p>
+        </div>
+      </div>
+      <div class="mt-6 p-4 rounded-xl bg-cr3Dark border border-cr3Border/50 scroll-fade delay-400">
+        <p class="text-xs text-gray-400 flex items-center gap-2">
+            <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <strong>Nota Comercial:</strong> Al combinar estas métricas de la industria con nuestra altura premium de 20 metros, el equipo de ventas tiene un argumento irrefutable de ROI (Retorno de Inversión) frente a las carteleras estáticas o formatos más bajos de la competencia.
+        </p>
+      </div>
+    </section>
+
+    <!-- Naming Data Table (Mantenido de versión anterior) -->
+    <section class="mb-16">
+      <div class="card rounded-2xl p-8 scroll-fade delay-300">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h3 class="text-2xl font-bold text-white mb-2">Propuestas de Naming Oficial</h3>
+                <p class="text-cr3Text">Identidades evaluadas y filtradas para la nueva división comercial.</p>
+            </div>
+            <button class="text-sm text-cr3Green hover:text-white transition-colors border border-cr3Green/30 hover:border-cr3Green px-4 py-2 rounded-lg">Aprobar Naming</button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead>
+              <tr class="border-b border-cr3Border text-left">
+                <th class="py-4 px-4 text-xs font-bold text-cr3Text uppercase tracking-wider">Nombre Propuesto</th>
+                <th class="py-4 px-4 text-xs font-bold text-cr3Text uppercase tracking-wider">Racional / Concepto</th>
+                <th class="py-4 px-4 text-xs font-bold text-cr3Text uppercase tracking-wider">Veredicto</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-cr3Border/50">
+              <tr class="hover:bg-white/5 transition-colors group">
+                <td class="py-4 px-4">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-cr3Green/20 flex items-center justify-center text-cr3Green font-bold text-xs">#1</div>
+                    <span class="font-bold text-white text-base">Kroma20 Espectaculares</span>
+                  </div>
+                </td>
+                <td class="py-4 px-4 text-cr3Text text-sm">"Kroma" (color LED) + "20" (altura total de 20 metros). Enfoque directo, altamente tecnológico y que presume la ventaja competitiva en su propio nombre.</td>
+                <td class="py-4 px-4 text-right">
+                  <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide bg-cr3Green/20 text-cr3Green border border-cr3Green/30">Top Choice</span>
+                </td>
+              </tr>
+              <tr class="hover:bg-white/5 transition-colors group">
+                <td class="py-4 px-4">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400 font-bold text-xs">#2</div>
+                    <span class="font-bold text-white text-base">Vértice Media LED</span>
+                  </div>
+                </td>
+                <td class="py-4 px-4 text-cr3Text text-sm">El "vértice" remite al punto más alto (20m en total). Suena elegante, fuertemente corporativo y dominativo en el entorno urbano.</td>
+                <td class="py-4 px-4 text-right">
+                  <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide bg-blue-500/20 text-blue-400 border border-blue-500/30">Top Choice</span>
+                </td>
+              </tr>
+              <tr class="hover:bg-white/5 transition-colors group opacity-50">
+                <td class="py-4 px-4">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-cr3Orange/20 flex items-center justify-center text-cr3Orange font-bold text-xs">#3</div>
+                    <span class="font-bold text-white text-base">Cénit Digital OOH</span>
+                  </div>
+                </td>
+                <td class="py-4 px-4 text-cr3Text text-sm">"Cénit" es el punto más alto en el cielo. Refleja liderazgo indiscutible y exposición. Se mantiene solo como opción de respaldo ante registro IMPI.</td>
+                <td class="py-4 px-4 text-right">
+                  <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide bg-cr3Orange/20 text-cr3Orange border border-cr3Orange/30">Reserva</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-cr3Border bg-cr3Dark py-12">
+    <div class="max-w-7xl mx-auto px-6 text-center">
+        <p class="text-sm text-white font-semibold mb-2">DIRECCIÓN DE MARKETING Y NUEVOS NEGOCIOS</p>
+        <p class="text-xs text-cr3Text mb-6">Grupo CR3 • Chihuahua, México</p>
+        <div class="text-[10px] text-gray-500 uppercase tracking-widest max-w-2xl mx-auto leading-relaxed">
+            <p class="mb-2">Documento de Análisis - Inteligencia de Ubicaciones</p>
+            <p>Datos de afluencia basados en promedios de movilidad vial urbana y cruce geoespacial de Google Maps.</p>
+        </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+          }
+        });
+      }, { threshold: 0.1 });
+
+      document.querySelectorAll('.scroll-fade, .scroll-fade-left, .scroll-fade-right').forEach((el) => {
+        observer.observe(el);
+      });
+
+      initCharts();
+    });
+
+    function initCharts() {
+      Chart.defaults.color = '#94a3b8';
+      Chart.defaults.font.family = "'Inter', sans-serif";
+      
+      // Stacked Bar Chart for Traffic (Direct vs Indirect view)
+      const trafficCtx = document.getElementById('trafficChart').getContext('2d');
+      new Chart(trafficCtx, {
+        type: 'bar',
+        data: {
+          labels: ['Periférico Juventud', 'Av. Universidad', 'J. Pablo II / Pacheco'],
+          datasets: [
+            {
+                label: 'Cara Directa (Vehículos/Día)',
+                data: [120000, 50000, 45000],
+                backgroundColor: '#10B981',
+                borderRadius: 4
+            },
+            {
+                label: 'Cara Indirecta (Vehículos/Día)',
+                data: [95000, 35000, 30000],
+                backgroundColor: 'rgba(16, 185, 129, 0.3)',
+                borderColor: '#10B981',
+                borderWidth: 1,
+                borderRadius: 4
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { 
+                position: 'top',
+                labels: { usePointStyle: true, padding: 20 }
+            },
+            tooltip: {
+                backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                titleColor: '#fff',
+                bodyColor: '#cbd5e1',
+                padding: 12,
+                mode: 'index',
+                intersect: false,
+                callbacks: {
+                    label: function(context) {
+                        return context.dataset.label + ': ' + context.parsed.y.toLocaleString();
+                    }
+                }
+            }
+          },
+          scales: {
+            y: {
+              stacked: true,
+              grid: { color: 'rgba(51, 65, 85, 0.2)' },
+              ticks: { callback: (value) => (value/1000) + 'K' }
+            },
+            x: { 
+              stacked: true,
+              grid: { display: false } 
+            }
+          }
+        }
+      });
+
+      // Donut Chart (NSE/Profile Target)
+      const donutCtx = document.getElementById('donutChart').getContext('2d');
+      new Chart(donutCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['NSE A/B (Ejecutivo/Lujo)', 'NSE C/C+ (Medio/Urbano)', 'NSE D+/C- (Industrial)'],
+          datasets: [{
+            data: [40, 35, 25],
+            backgroundColor: ['#10B981', '#3B82F6', '#F97316'],
+            borderWidth: 0,
+            hoverOffset: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '70%',
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { usePointStyle: true, padding: 15, font: { size: 11 } }
+            }
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>
